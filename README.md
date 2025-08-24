@@ -1,37 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Unity WebGL ショーケース（GitHub Pages 対応 SSG）
 
-## Getting Started
+## 概要
 
-First, run the development server:
+複数の Unity WebGL ビルドをリスト表示し、各ページで直接プレイできる静的サイトです。Next.js App Router と完全静的エクスポート（next export）を利用します。
 
-```bash
+## ディレクトリ
+
+- メタデータ: `src/data/games.json`
+- 型定義: `src/types/games.ts`
+- 一覧ページ: `src/app/page.tsx`
+- プレイページ: `src/app/games/[id]/page.tsx`
+- WebGL 実体: `public/games/<id>/index.html`
+- サムネイル: `public/thumbnails/<id>.(png|jpg|svg)`
+
+## ローカル開発
+
+```
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 静的エクスポート
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+npm run build
+npm run export
+# 出力: out/
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## GitHub Pages 配信の注意
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# webgl-showcase
+- `next.config.ts` で `output: "export"`, `basePath/assetPrefix` を production で `/webgl-showcase` に設定。
+- `public/.nojekyll` を含める（自動）
+- 画像最適化は無効（`images.unoptimized: true`）
+- Unity WebGL は Threads 無効・Decompression Fallback 有効でビルドしてください。
