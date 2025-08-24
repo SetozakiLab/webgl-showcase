@@ -5,7 +5,8 @@ import type { Game } from "@/types/games";
 import { readGames, gameIndexHtmlExists } from "@/lib/games";
 import { FullscreenButton } from "@/components/FullscreenButton";
 
-type Props = { params: { id: string } };
+// Next 15.x の型では params が Promise になるため CI に合わせる
+type Props = { params: Promise<{ id: string }> };
 
 export async function generateStaticParams() {
   const games = readGames();
@@ -16,7 +17,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = params;
+  const { id } = await params;
   const games = readGames();
   const game = games.find((g) => g.id === id);
   if (!game) return {};
@@ -39,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function GamePage({ params }: Props) {
-  const { id } = params;
+  const { id } = await params;
   const games = readGames();
   const game = games.find((g) => g.id === id);
 
