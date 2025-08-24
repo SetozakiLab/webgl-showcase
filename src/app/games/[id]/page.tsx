@@ -22,19 +22,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const game = games.find((g) => g.id === id);
   if (!game) return {};
   const title = `${game.title} | Unity WebGL ショーケース`;
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+  const image = `${basePath}${game.thumbnail}`;
   return {
     title,
     description: game.description,
     openGraph: {
       title,
       description: game.description,
-      images: game.thumbnail,
+      images: image,
     },
     twitter: {
       card: "summary_large_image",
       title,
       description: game.description ?? undefined,
-      images: game.thumbnail,
+      images: image,
     },
   };
 }

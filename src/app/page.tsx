@@ -5,6 +5,7 @@ import { gameIndexHtmlExists } from "@/lib/games";
 
 export default function Home() {
   const games = gamesData as Game[];
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
   return (
     <main className="min-h-screen px-6 py-10 md:px-10 md:py-12">
       <h1 className="text-2xl md:text-3xl font-semibold">
@@ -23,7 +24,7 @@ export default function Home() {
               >
                 {/* 画像は <img> でOK（Next Image最適化は無効化） */}
                 <img
-                  src={g.thumbnail}
+                  src={`${basePath}${g.thumbnail}`}
                   alt={`${g.title} サムネイル`}
                   loading="lazy"
                   className="aspect-video w-full object-cover"
