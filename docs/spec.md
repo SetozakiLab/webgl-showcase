@@ -2,11 +2,12 @@
 
 ## 1. 概要
 
-本ドキュメントは、Next.js を使用して構築する Unity WebGL ゲームのショーケースサイトに関する要件を定義する。
+本ドキュメントは、Next.js を使用して構築する Unity WebGL ゲームのショーケース（ハブ）サイトに関する要件を定義する。
 
-- 目的: 複数の Unity WebGL ビルドを一覧公開し、ブラウザ上で直接プレイできる静的サイトを提供する。
-- 主要技術: Next.js (App Router), 静的サイト生成 (SSG), TypeScript
-- デプロイ対象: GitHub Pages（プロジェクトページ）
+- 目的: 研究室で作成された複数の Unity プロジェクトを一覧紹介する「ハブ」として機能し、各ゲームの公開先（例: Netlify, Cloudflare Pages など）へ遷移させる。
+- 方針: このリポジトリには WebGL ビルドファイルを含めない。各ゲームは外部ホスティング先に配置し、本サイトはその外部 URL へ遷移（クライアントリダイレクト）または外部リンクを提供する。
+- 主要技術: Next.js (App Router), TypeScript（SSG/ISR/SSR を状況に応じて選択）
+- デプロイ対象: Vercel（Preview/Production）
 
 ## 2. 機能要件
 
@@ -20,11 +21,11 @@
   - ゲームのタイトル
 - 各項目は、対応するゲームプレイページへのリンクとして機能する。
 
-#### 2.1.2. ゲームプレイページ
+#### 2.1.2. ゲーム遷移ページ
 
-- Unity WebGL ビルドを画面に埋め込み、ユーザーが直接プレイできる。
-- ゲームのタイトルを表示する。
-- サイトのトップ（一覧ページ）に戻るためのナビゲーションリンク（例: 「一覧に戻る」ボタン）を設置する。
+- ルート `/games/[id]` は、対応する外部公開先 URL（Netlify 等）へ即時にクライアントリダイレクトする（window.location.replace など）。
+- リダイレクト前に簡易情報（タイトル）を表示し、遷移できない場合に備えて外部リンク（新規タブで開く）と「一覧に戻る」リンクを設ける。
+- 直接の WebGL 埋め込みは行わない（埋め込みは任意の拡張要件として扱う）。
 
 #### 2.1.3. 共通レイアウト
 
@@ -36,10 +37,10 @@
 - 一覧ページの拡張:
   - 各ゲームに短い説明文を追加表示する。
   - 「アクション」「パズル」などのカテゴリやタグを付与し、ユーザーが特定のタグでゲームを絞り込めるフィルタリング機能。
-- プレイページの拡張:
-  - ゲームの詳しい説明や操作方法を記載する専用エリアを設ける。
-  - ゲーム画面をフルスクリーンで表示する切り替えボタンを設置する。
-  - X (旧 Twitter) などでプレイページを共有するための SNS シェアボタンを設置する。
+- 遷移ページ（/games/[id]）の拡張:
+  - リダイレクト前に表示する詳しい説明や操作方法のエリア。
+  - 埋め込みプレビュー（iframe）を提供（外部側の CSP/COOP 設定により制約を受ける点に留意）。
+  - X (旧 Twitter) などで遷移先を共有するための SNS シェアボタン。
 - その他:
   - サイト内のゲームをキーワードで検索できる検索機能。
 
@@ -47,27 +48,18 @@
 
 ### 3.1. ディレクトリ構成
 
-プロジェクトの `public` ディレクトリを以下のように構成する。
+本プロジェクトには WebGL ビルドファイルを含めないため、`public` 直下はサムネイル等の静的アセットのみを配置する。
 
 ```text
 public/
-├── games/
-│   ├── cool-action-game/      # ゲームIDごとのフォルダ
-│   │   ├── index.html
-│   │   ├── Build/
-│   │   └── TemplateData/
-│   └── puzzle-master/
-│       ├── index.html
-│       ├── Build/
-│       └── TemplateData/
 └── thumbnails/
-    ├── cool-action-game.png   # ゲームIDに対応するサムネイル画像
-    └── puzzle-master.png
+  ├── cool-action-game.png   # ゲームIDに対応するサムネイル画像（拡張子は .png/.jpg/.svg など任意）
+  └── puzzle-master.png
 ```
 
 ### 3.2. データ管理
 
-- ゲームのメタデータ（ID, タイトル, 説明等）は、プロジェクト内の単一の JSON ファイルで一元管理する。
+- ゲームのメタデータ（ID, タイトル, 説明, 外部公開先 URL 等）は、プロジェクト内の単一の JSON ファイルで一元管理する。
 - ファイルパス: `src/data/games.json`
 - データ構造（例）:
 
@@ -78,6 +70,7 @@ public/
     "title": "クールアクションゲーム",
     "description": "これはすごいアクションゲームです。",
     "thumbnail": "/thumbnails/cool-action-game.png",
+    "externalUrl": "https://cool-action-game.netlify.app/", // 外部ホスティング先 URL（必須）
     "tags": ["アクション", "2D"]
   },
   {
@@ -85,6 +78,7 @@ public/
     "title": "パズルマスター",
     "description": "頭を使うパズルゲーム。",
     "thumbnail": "/thumbnails/puzzle-master.png",
+    "externalUrl": "https://puzzle-master.example.pages.dev/",
     "tags": ["パズル", "思考"]
   }
 ]
@@ -93,50 +87,22 @@ public/
 ### 3.3. ページ構成 (Next.js App Router)
 
 - 一覧ページ: `src/app/page.tsx`
-  - ビルド時に `src/data/games.json` を読み込み、静的な HTML を生成する。
-- プレイページ: `src/app/games/[id]/page.tsx`
-  - 動的ルートセグメントを利用する。
-  - `generateStaticParams` 関数を使い、`games.json` 内の全ゲーム ID に基づいてビルド時に全てのプレイページを静的生成する。
-  - ゲーム本体の埋め込みには `<iframe>` タグを使用する。
-  - 例（GitHub Pages のプロジェクトページ配下に配置するため、`basePath` を考慮する）:
+  - `src/data/games.json` を読み込み、SSG もしくは ISR で配信する。
+- 遷移ページ: `src/app/games/[id]/page.tsx`
+  - 動的ルートセグメントを利用。
+  - `generateStaticParams` で `games.json` の全 ID を事前生成（推奨）。必要に応じて ISR/動的レンダリングも可。
+  - サーバーリダイレクト（`next/navigation` の `redirect()`）を基本とし、フォールバックとしてクライアントリダイレクト（`window.location.replace(...)`）を提供する。
+  - フォールバックとして、外部 URL を開くリンク（target="\_blank" rel="noopener"）と「一覧に戻る」を表示する。
 
-```html
-<!-- basePath 例: /webgl-showcase -->
-<iframe
-  src="{basePath}/games/cool-action-game/index.html"
-  allow="fullscreen; autoplay"
-></iframe>
-```
+#### 3.3.1. レンダリング方針（Vercel 前提）
 
-#### 3.3.1. SSG と静的エクスポート
+- 一覧ページは SSG または ISR を採用。
+- 遷移ページは `redirect()` によるサーバーリダイレクト（推奨）または ISR。
+- 画像最適化は `next/image` を利用可能。
 
-- 本サイトは完全静的エクスポート（`next export`）を用いる。
-- 設定例（参考）：
-
-```ts
-// next.config.ts（参考）
-import type { NextConfig } from "next";
-
-const isProd = process.env.NODE_ENV === "production";
-const basePath = isProd ? "/webgl-showcase" : ""; // リポジトリ名に合わせて変更
-
-const nextConfig: NextConfig = {
-  output: "export",
-  basePath,
-  assetPrefix: basePath,
-  images: { unoptimized: true }, // GitHub Pages では最適化サーバー非対応
-  trailingSlash: true, // /path/ 形式で index.html を解決
-};
-
-export default nextConfig;
-```
-
-## 4. 開発ロードマップ (推奨ステップ)
+## 4. 開発ロードマップ
 
 - Step 1: 最小構成の実装
-  - Next.js プロジェクトをセットアップする。
-  - サンプルの WebGL ビルドを 1 つ `public` ディレクトリに配置する。
-  - 単一のゲームプレイページ（`/games/[id]/page.tsx`）を作成し、`<iframe>` でゲームが正しく表示されることを確認する。
 - Step 2: データ連携と一覧ページの構築
   - `src/data/games.json` を作成し、メタデータを定義する。
   - 一覧ページ（`/page.tsx`）で JSON を読み込み、ゲームリストとプレイページへのリンクを動的に生成する。
@@ -145,57 +111,36 @@ export default nextConfig;
 - Step 4: 拡張機能の実装
   - 必須要件が完了次第、2.2 に記載されている拡張機能（フィルタリング、検索など）の設計と実装に着手する。
 
-## 5. デプロイ/ホスティング（GitHub Pages）
+## 5. デプロイ/ホスティング（Vercel）
 
 ### 5.1. 方針
 
-- GitHub Pages（プロジェクトページ）にデプロイする。
-- ブランチ戦略: `main`（ソース）→ GitHub Actions でビルド → Pages アーティファクトを `gh-pages`/Pages に公開。
-- ルートパスは `https://<owner>.github.io/<repo>/` となるため、`basePath`/`assetPrefix` を `<repo>` に設定する。
+- GitHub リポジトリを Vercel に接続し、PR ごとに Preview、`main` マージで Production を自動デプロイ。
+- basePath/assetPrefix の設定は不要。ルート `/` を基準とした絶対パスで参照する。
 
 ### 5.2. ビルド/配信要件
 
-- 完全静的: `next build && next export` を利用。
-- 出力には `.nojekyll` を必ず含める（Jekyll 処理を無効化）。
-- 404 ページは `404.html` を出力（Next.js のエクスポートで自動生成）。
-- 画像最適化は無効化（`images.unoptimized: true`）。
+- `next build` によりビルド（起動は Vercel が管理）。
+- 画像最適化は有効（`next/image`）。必要に応じて外部ドメイン許可を追加。
+- 静的アセットは `public/` から配信。
 
-### 5.3. Unity WebGL ビルドに関する重要事項（Pages 制約対応）
+### 5.3. Unity WebGL ビルドに関する重要事項（外部ホスティング側/Vercel）
 
-- セキュリティヘッダー（COOP/COEP, CSP 等）や `Content-Encoding` は GitHub Pages で任意設定できない。
-  - そのため、Unity の「スレッド（Multithreading）」は使用しない（SharedArrayBuffer が必要となり COOP/COEP が必須なため）。
-  - 圧縮配信のためのサーバー側 `Content-Encoding: br/gzip` も設定できない。
-- 推奨ビルド設定（Unity Editor の WebGL Player Settings）
-  - Compression Format: Brotli または Gzip
-  - Decompression Fallback: 有効（必須）
-    - サーバーが `Content-Encoding` を返さなくても、Unity ローダーがクライアント側で解凍可能。
-  - Threads（Enable Threads）: 無効
-  - Data Caching（IndexedDB）: 有効（初回以降の高速化）
-  - WebGL 2.0: 既定のまま。古い端末の互換性に留意。
-- MIME/拡張子
-  - GitHub Pages は `.wasm` に `application/wasm` を返すが、念のためローダー側のフォールバックに依存できる構成（Decompression Fallback）とする。
-  - `.data`, `.bundle`, `.br`, `.gz` は `application/octet-stream` でも動作する前提（Unity ローダーで解決）。
-- ファイルサイズと LFS
-  - GitHub Pages は Git LFS で配信されるファイルをサポートしないため、LFS は使用しない。
-  - 個々のファイルは 100MB 未満、リポジトリ全体の Pages 配信容量は 1GB 未満に抑える。
-  - Unity ビルドを小さく保つ（テクスチャ圧縮、圧縮形式選定、不要アセットの除去）。
+- 各ゲームは Netlify / Cloudflare Pages / Vercel 等の外部ホスティングに配置する（本リポジトリにはビルドを含めない方針は継続）。
+- 外部ホスティング側では、必要に応じてレスポンスヘッダー（COOP/COEP, CSP）や圧縮（br/gzip）を設定可能。
+  - Threads（SharedArrayBuffer が必要）を利用する場合は、Cross-Origin Isolation（COOP/COEP）を適切に構成する。
+  - 圧縮配信はホスティング側の機能を利用するか、Unity の Decompression Fallback を有効化して互換性を確保する。
+- ファイルサイズや LFS 制約は各ホスティングのポリシーに従う（一般に Git LFS は避けることを推奨）。
 
-### 5.4. CI/CD（参考ワークフロー）
+### 5.4. CI/CD（参考）
 
-GitHub Actions 例（概要）:
+- Vercel の Git 連携で Push/PR を自動デプロイ（Preview/Production）。
+- 必要に応じて GitHub Actions はテストや Lint のみ実行し、デプロイは Vercel に任せる。
 
-1. `on: push`（`main`）をトリガーに実行
-2. `npm ci && npm run build && npm run export` を実行
-3. `out/` を Pages アーティファクトとして公開
-4. ルートに `.nojekyll` を配置
+### 5.5. リンクとパス
 
-（実ファイルは別途 `.github/workflows/deploy.yml` を用意）
-
-### 5.5. ベースパスとリンク
-
-- アプリ内のリンクや iframe の `src` は `basePath` を考慮する。
-- 例: `<iframe src={`${basePath}/games/${id}/index.html`}>`
-- `assetPrefix` も同一値に設定し、静的アセット解決を一元化。
+- basePath/assetPrefix の考慮は不要。
+- 例: `<a href="/games/${id}">`、`iframe src="/games/${id}/index.html"`（埋め込みを行う場合）。
 
 ## 6. 非機能要件（追加）
 
@@ -220,28 +165,28 @@ GitHub Actions 例（概要）:
 
 ### 6.4. エラーハンドリング
 
-- `games.json` と実体（`public/games/<id>/index.html`）の不整合時はビルドを失敗させるか、該当エントリをスキップ（いずれかを規定）。
+- `games.json` に `externalUrl` が存在しない、または URL 形式が不正なエントリはビルド時にエラーとするか、スキップ対象とする。
 - `/games/[id]` で存在しない ID は 404 を返す。
-- プレイページでロード失敗時、再読み込み誘導とサポート表示を出す（簡易メッセージ）。
+- 遷移ページで外部サイトへのリダイレクトがブロック/失敗した場合、外部リンク（新規タブ）と再試行リンクを提示する。
 
-## 7. 受け入れ基準（抜粋・GitHub Pages 前提）
+## 7. 受け入れ基準（抜粋・Vercel 前提）
 
 - ルーティング/リンク
-  - Top `/` および `/games/<id>/` が `basePath` 配下で正しく解決される（例: `/webgl-showcase/games/cool-action-game/`）。
+  - Top `/` および `/games/<id>/` が正しく解決される（例: `/games/cool-action-game/`）。
   - 一覧の各カードはタイトル・サムネイルを表示し、クリック/Enter で遷移できる。
-- プレイページ
-  - タイトル表示、「一覧に戻る」リンクあり。
-  - iframe はレスポンシブに表示され、`allow="fullscreen; autoplay"` が付与されている。
-  - Unity ビルドは GitHub Pages 上でロードエラーなく起動する（ネットワークパネルで 4xx/5xx/圧縮ヘッダー不整合がない）。
+- 遷移ページ
+  - タイトル表示、「一覧に戻る」リンク、外部サイトを開く代替リンクがある。
+  - サーバーリダイレクト（`redirect()`）が機能し、必要時にクライアントリダイレクトへフォールバックする。
+  - リダイレクト不可時でもユーザーが手動で外部サイトを開ける。
 - ビルド/配信
-  - `out/` に `.nojekyll` が含まれ、GitHub Pages で正しく配信される。
-  - LFS を利用せず、各ファイルサイズが 100MB 未満である。
+  - Vercel の Preview/Production でエラーなく配信される。
+  - 本リポジトリには Unity ビルドアセットを含めない。
   - Lighthouse（モバイル）で Performance 80+ / Accessibility 90+ を満たす。
 
 ## 8. 補足（実装メモ）
 
 - `src/data/games.json` の型定義・バリデーション
-  - TypeScript 型 `Game` と Zod 等でスキーマ検証を行い、ビルド時に不整合を検出。
-- `generateStaticParams` で `public/games/<id>/index.html` の存在確認を行うユーティリティを用意（見つからない場合の扱いを統一）。
-- iframe の全画面切替 UI をプレイページに実装（`requestFullscreen()` 呼び出し）。
-- iOS/Safari 制約（オーディオ自動再生など）に配慮し、ユーザー操作後に BGM 開始する設計とする。
+  - TypeScript 型 `Game`（id, title, description, thumbnail, externalUrl, tags など）と Zod 等でスキーマ検証を行い、ビルド時に不整合を検出。
+- `generateStaticParams` は `games.json` の ID 群から生成（`public/games/...` の存在確認は不要）。
+- 埋め込みプレビューを行う場合は、外部サイト側の CSP/COOP により iframe 許可可否が決まるため事前確認する。
+- iOS/Safari 制約（オーディオ自動再生など）は外部ホスティング側の実装方針に従う。
