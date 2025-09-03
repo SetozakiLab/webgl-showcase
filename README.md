@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Unity WebGL Showcase
 
-## Getting Started
+研究室で作成した複数の Unity WebGL プロジェクトを一覧表示し、各外部ホスティング先に遷移するハブサイトです。
 
-First, run the development server:
+### 使い方
+
+1. ローカル起動
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+http://localhost:3000 を開きます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. コンテンツの追加
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `src/data/contents.json` にエントリを追加します。
+- サムネイルは `public/thumbnails/` に配置し、`thumbnail` にそのパスを指定します（例: `/thumbnails/foo.png`）。
+- `externalUrl` には外部ホスティング（Netlify, Cloudflare Pages など）の公開 URL を設定します。
 
-## Learn More
+3. リライト/リダイレクト
 
-To learn more about Next.js, take a look at the following resources:
+- 既定では Vercel Rewrites を使用し、`/contents/<id>` の URL を維持したまま外部を配信します。
+- 環境変数 `USE_REWRITES=false` を指定すると、`/contents/<id>` はサーバーリダイレクトします。
+- クライアント側ではフォールバックとして `window.location.replace` による遷移も試みます。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### デプロイ
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Vercel に接続して push/PR ごとに Preview、main マージで Production に自動デプロイされます。
