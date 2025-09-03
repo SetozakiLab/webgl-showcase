@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { getAllContentIds, getContentById } from "@/lib/contents";
 import { Metadata } from "next";
 
 interface ContentPageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export async function generateStaticParams() {
@@ -18,8 +18,10 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({ params }: ContentPageProps): Promise<Metadata> {
-  const { id } = await params;
+export async function generateMetadata({
+  params,
+}: ContentPageProps): Promise<Metadata> {
+  const { id } = params;
   const content = getContentById(id);
 
   if (!content) {
@@ -47,11 +49,16 @@ export async function generateMetadata({ params }: ContentPageProps): Promise<Me
 }
 
 export default async function ContentPage({ params }: ContentPageProps) {
-  const { id } = await params;
+  const { id } = params;
   const content = getContentById(id);
 
   if (!content) {
     notFound();
+  }
+
+  // Optional server redirect fallback (set WEBGL_FORWARD_STRATEGY=redirect)
+  if (content && process.env.WEBGL_FORWARD_STRATEGY === "redirect") {
+    redirect(content.externalUrl);
   }
 
   // This fallback page is shown when rewrites don't work or as a backup
@@ -94,7 +101,11 @@ export default async function ContentPage({ params }: ContentPageProps) {
                 </p>
                 <div className="flex gap-4 justify-center flex-wrap">
                   <Button asChild size="lg">
-                    <Link href={content.externalUrl} target="_blank" rel="noopener noreferrer">
+                    <Link
+                      href={content.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       <ExternalLink className="w-4 h-4 mr-2" />
                       新しいタブで開く
                     </Link>
@@ -111,7 +122,8 @@ export default async function ContentPage({ params }: ContentPageProps) {
 
               <div className="text-center text-sm text-muted-foreground">
                 <p>
-                  このページは自動的に外部ホスティングからコンテンツを読み込みます。<br />
+                  このページは自動的に外部ホスティングからコンテンツを読み込みます。
+                  <br />
                   読み込みに時間がかかる場合や、問題が発生した場合は「新しいタブで開く」をご利用ください。
                 </p>
               </div>
