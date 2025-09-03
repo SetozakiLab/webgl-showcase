@@ -2,10 +2,10 @@
 
 ## 1. 概要
 
-本ドキュメントは、Next.js を使用して構築する Unity WebGL ゲームのショーケース（ハブ）サイトに関する要件を定義する。
+本ドキュメントは、Next.js を使用して構築する Unity WebGL コンテンツのショーケース（ハブ）サイトに関する要件を定義する。
 
-- 目的: 研究室で作成された複数の Unity プロジェクトを一覧紹介する「ハブ」として機能し、各ゲームの公開先（例: Netlify, Cloudflare Pages など）へ遷移させる。
-- 方針: このリポジトリには WebGL ビルドファイルを含めない。各ゲームは外部ホスティング先に配置し、本サイトはその外部 URL へ遷移（クライアントリダイレクト）または外部リンクを提供する。
+- 目的: 研究室で作成された複数の Unity プロジェクトを一覧紹介する「ハブ」として機能し、各コンテンツの公開先（例: Netlify, Cloudflare Pages など）へ遷移させる。
+- 方針: このリポジトリには WebGL ビルドファイルを含めない。各コンテンツは外部ホスティング先に配置し、本サイトはその外部 URL へ遷移（クライアントリダイレクト）または外部リンクを提供する。
 - 主要技術: Next.js (App Router), TypeScript（SSG/ISR/SSR を状況に応じて選択）
 - デプロイ対象: Vercel（Preview/Production）
 
@@ -13,17 +13,17 @@
 
 ### 2.1. 必須要件 (Must-have)
 
-#### 2.1.1. ゲーム一覧ページ (トップページ)
+#### 2.1.1. コンテンツ一覧ページ (トップページ)
 
-- サイトで公開している全てのゲームをリスト形式で表示する。
+- サイトで公開している全てのコンテンツをリスト形式で表示する。
 - リストの各項目には、以下の情報を含める。
-  - ゲームのサムネイル画像
-  - ゲームのタイトル
-- 各項目は、対応するゲームプレイページへのリンクとして機能する。
+  - コンテンツのサムネイル画像
+  - コンテンツのタイトル
+- 各項目は、対応するコンテンツプレイページへのリンクとして機能する。
 
-#### 2.1.2. ゲーム遷移ページ
+#### 2.1.2. コンテンツ遷移ページ
 
-- ルート `/games/[id]` は、対応する外部公開先 URL（Netlify 等）へ即時にクライアントリダイレクトする（window.location.replace など）。
+- ルート `/contents/[id]` は、対応する外部公開先 URL（Netlify 等）へ即時にクライアントリダイレクトする（window.location.replace など）。
 - リダイレクト前に簡易情報（タイトル）を表示し、遷移できない場合に備えて外部リンク（新規タブで開く）と「一覧に戻る」リンクを設ける。
 - 直接の WebGL 埋め込みは行わない（埋め込みは任意の拡張要件として扱う）。
 
@@ -35,14 +35,14 @@
 ### 2.2. 拡張要件 (Nice-to-have)
 
 - 一覧ページの拡張:
-  - 各ゲームに短い説明文を追加表示する。
-  - 「アクション」「パズル」などのカテゴリやタグを付与し、ユーザーが特定のタグでゲームを絞り込めるフィルタリング機能。
-- 遷移ページ（/games/[id]）の拡張:
+  - 各コンテンツに短い説明文を追加表示する。
+  - 「アクション」「パズル」などのカテゴリやタグを付与し、ユーザーが特定のタグでコンテンツを絞り込めるフィルタリング機能。
+- 遷移ページ（/contents/[id]）の拡張:
   - リダイレクト前に表示する詳しい説明や操作方法のエリア。
   - 埋め込みプレビュー（iframe）を提供（外部側の CSP/COOP 設定により制約を受ける点に留意）。
   - X (旧 Twitter) などで遷移先を共有するための SNS シェアボタン。
 - その他:
-  - サイト内のゲームをキーワードで検索できる検索機能。
+  - サイト内のコンテンツをキーワードで検索できる検索機能。
 
 ## 3. 技術仕様
 
@@ -53,14 +53,14 @@
 ```text
 public/
 └── thumbnails/
-  ├── cool-action-game.png   # ゲームIDに対応するサムネイル画像（拡張子は .png/.jpg/.svg など任意）
+  ├── cool-action-game.png   # コンテンツIDに対応するサムネイル画像（拡張子は .png/.jpg/.svg など任意）
   └── puzzle-master.png
 ```
 
 ### 3.2. データ管理
 
-- ゲームのメタデータ（ID, タイトル, 説明, 外部公開先 URL 等）は、プロジェクト内の単一の JSON ファイルで一元管理する。
-- ファイルパス: `src/data/games.json`
+- コンテンツのメタデータ（ID, タイトル, 説明, 外部公開先 URL 等）は、プロジェクト内の単一の JSON ファイルで一元管理する。
+- ファイルパス: `src/data/contents.json`
 - データ構造（例）:
 
 ```json
@@ -87,10 +87,10 @@ public/
 ### 3.3. ページ構成 (Next.js App Router)
 
 - 一覧ページ: `src/app/page.tsx`
-  - `src/data/games.json` を読み込み、SSG もしくは ISR で配信する。
-- 遷移ページ: `src/app/games/[id]/page.tsx`
+  - `src/data/contents.json` を読み込み、SSG もしくは ISR で配信する。
+- 遷移ページ: `src/app/contents/[id]/page.tsx`
   - 動的ルートセグメントを利用。
-  - `generateStaticParams` で `games.json` の全 ID を事前生成（推奨）。必要に応じて ISR/動的レンダリングも可。
+  - `generateStaticParams` で `contents.json` の全 ID を事前生成（推奨）。必要に応じて ISR/動的レンダリングも可。
   - サーバーリダイレクト（`next/navigation` の `redirect()`）を基本とし、フォールバックとしてクライアントリダイレクト（`window.location.replace(...)`）を提供する。
   - フォールバックとして、外部 URL を開くリンク（target="\_blank" rel="noopener"）と「一覧に戻る」を表示する。
 
@@ -104,8 +104,8 @@ public/
 
 - Step 1: 最小構成の実装
 - Step 2: データ連携と一覧ページの構築
-  - `src/data/games.json` を作成し、メタデータを定義する。
-  - 一覧ページ（`/page.tsx`）で JSON を読み込み、ゲームリストとプレイページへのリンクを動的に生成する。
+  - `src/data/contents.json` を作成し、メタデータを定義する。
+  - 一覧ページ（`/page.tsx`）で JSON を読み込み、コンテンツリストとプレイページへのリンクを動的に生成する。
 - Step 3: スタイリング
   - Tailwind CSS や CSS Modules などを利用して、サイト全体の UI/UX を設計・実装する。レスポンシブ対応もこの段階で行う。
 - Step 4: 拡張機能の実装
@@ -126,7 +126,7 @@ public/
 
 ### 5.3. Unity WebGL ビルドに関する重要事項（外部ホスティング側/Vercel）
 
-- 各ゲームは Netlify / Cloudflare Pages / Vercel 等の外部ホスティングに配置する（本リポジトリにはビルドを含めない方針は継続）。
+- 各コンテンツは Netlify / Cloudflare Pages / Vercel 等の外部ホスティングに配置する（本リポジトリにはビルドを含めない方針は継続）。
 - 外部ホスティング側では、必要に応じてレスポンスヘッダー（COOP/COEP, CSP）や圧縮（br/gzip）を設定可能。
   - Threads（SharedArrayBuffer が必要）を利用する場合は、Cross-Origin Isolation（COOP/COEP）を適切に構成する。
   - 圧縮配信はホスティング側の機能を利用するか、Unity の Decompression Fallback を有効化して互換性を確保する。
@@ -140,7 +140,7 @@ public/
 ### 5.5. リンクとパス
 
 - basePath/assetPrefix の考慮は不要。
-- 例: `<a href="/games/${id}">`、`iframe src="/games/${id}/index.html"`（埋め込みを行う場合）。
+- 例: `<a href="/contents/${id}">`、`iframe src="/contents/${id}/index.html"`（埋め込みを行う場合）。
 
 ## 6. 非機能要件（追加）
 
@@ -159,20 +159,20 @@ public/
 
 ### 6.3. SEO
 
-- 各ゲームページで `<title>` と `<meta name="description">` を `games.json` から生成。
+- 各コンテンツページで `<title>` と `<meta name="description">` を `contents.json` から生成。
 - OGP/Twitter カード（タイトル、説明、サムネイル）を出力。
 - サイトマップ（`sitemap.xml`）の生成は任意（静的エクスポートの構成上、簡易に生成可能）。
 
 ### 6.4. エラーハンドリング
 
-- `games.json` に `externalUrl` が存在しない、または URL 形式が不正なエントリはビルド時にエラーとするか、スキップ対象とする。
-- `/games/[id]` で存在しない ID は 404 を返す。
+- `contents.json` に `externalUrl` が存在しない、または URL 形式が不正なエントリはビルド時にエラーとするか、スキップ対象とする。
+- `/contents/[id]` で存在しない ID は 404 を返す。
 - 遷移ページで外部サイトへのリダイレクトがブロック/失敗した場合、外部リンク（新規タブ）と再試行リンクを提示する。
 
 ## 7. 受け入れ基準（抜粋・Vercel 前提）
 
 - ルーティング/リンク
-  - Top `/` および `/games/<id>/` が正しく解決される（例: `/games/cool-action-game/`）。
+  - Top `/` および `/contents/<id>/` が正しく解決される（例: `/contents/cool-action-game/`）。
   - 一覧の各カードはタイトル・サムネイルを表示し、クリック/Enter で遷移できる。
 - 遷移ページ
   - タイトル表示、「一覧に戻る」リンク、外部サイトを開く代替リンクがある。
@@ -185,8 +185,8 @@ public/
 
 ## 8. 補足（実装メモ）
 
-- `src/data/games.json` の型定義・バリデーション
-  - TypeScript 型 `Game`（id, title, description, thumbnail, externalUrl, tags など）と Zod 等でスキーマ検証を行い、ビルド時に不整合を検出。
-- `generateStaticParams` は `games.json` の ID 群から生成（`public/games/...` の存在確認は不要）。
+- `src/data/contents.json` の型定義・バリデーション
+  - TypeScript 型 `Content`（id, title, description, thumbnail, externalUrl, tags など）と Zod 等でスキーマ検証を行い、ビルド時に不整合を検出。
+- `generateStaticParams` は `contents.json` の ID 群から生成（`public/contents/...` の存在確認は不要）。
 - 埋め込みプレビューを行う場合は、外部サイト側の CSP/COOP により iframe 許可可否が決まるため事前確認する。
 - iOS/Safari 制約（オーディオ自動再生など）は外部ホスティング側の実装方針に従う。
