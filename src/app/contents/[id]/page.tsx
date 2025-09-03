@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,11 +54,6 @@ export default async function ContentPage({ params }: ContentPageProps) {
 
   if (!content) {
     notFound();
-  }
-
-  // Optional server redirect fallback (set WEBGL_FORWARD_STRATEGY=redirect)
-  if (content && process.env.WEBGL_FORWARD_STRATEGY === "redirect") {
-    redirect(content.externalUrl);
   }
 
   // This fallback page is shown when rewrites don't work or as a backup

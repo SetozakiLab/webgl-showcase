@@ -1,50 +1,46 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
+    // Allow serving SVGs from public/ via next/image if needed
     dangerouslyAllowSVG: true,
-    contentDispositionType: "attachment",
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  // Commented out rewrites for demo purposes since external URLs don't exist
-  // In production, uncomment and configure valid external URLs
 
   async rewrites() {
-    // Generate rewrites for each content to proxy external URLs.
-    // Use beforeFiles so rewrites take precedence even if a matching page exists
-    // (e.g. app/contents/[id]/page.tsx acts as a fallback UI only).
+    // Build-time rewrites generated from local JSON so unknown IDs fall back to 404 UI
     const contentsData = require("./src/data/contents.json");
     const assetPrefixes = ["TemplateData", "Build", "StreamingAssets"] as const;
-    const rules = contentsData.flatMap((content: any) => {
+
+    const beforeFiles = contentsData.flatMap((content: any) => {
+      const id = String(content.id);
       const base = String(content.externalUrl).replace(/\/$/, "");
-      const refererRegex = `https?://[^/]+/contents/${content.id}(?:/.*)?`;
-      const basic = [
-        // exact match (/contents/<id>) -> external root
-        { source: `/contents/${content.id}`, destination: `${base}/` },
-        // nested assets (/contents/<id>/*) -> external with same path
-        {
-          source: `/contents/${content.id}/:path*`,
-          destination: `${base}/:path*`,
-        },
+      const refererRegex = `https?://[^/]+/contents/${id}(?:/.*)?`;
+
+      return [
+        // 1) Serve the external index through our proxy to inject <base>
+        { source: `/contents/${id}`, destination: `/api/proxy/${id}` },
+        { source: `/contents/${id}/`, destination: `/api/proxy/${id}` },
+
+        // 2) Anything nested under /contents/<id>/... should go to the external host
+        { source: `/contents/${id}/:path*`, destination: `${base}/:path*` },
+
+        // 3) Some Unity builds issue absolute-root asset requests; pass them through
+        ...assetPrefixes.flatMap((p) => [
+          {
+            source: `/${p}/:path*`,
+            has: [{ type: "header", key: "referer", value: refererRegex }],
+            destination: `${base}/${p}/:path*`,
+          },
+          {
+            source: `/contents/${p}/:path*`,
+            has: [{ type: "header", key: "referer", value: refererRegex }],
+            destination: `${base}/${p}/:path*`,
+          },
+        ]),
       ];
-      const assetRules = assetPrefixes.flatMap((p) => [
-        // Absolute-like root requests made after landing on /contents/<id>
-        {
-          source: `/${p}/:path*`,
-          has: [{ type: "header", key: "referer", value: refererRegex }],
-          destination: `${base}/${p}/:path*`,
-        },
-        // Some builds end up requesting under /contents/<prefix>/...
-        {
-          source: `/contents/${p}/:path*`,
-          has: [{ type: "header", key: "referer", value: refererRegex }],
-          destination: `${base}/${p}/:path*`,
-        },
-      ]);
-      return [...basic, ...assetRules];
     });
-    return { beforeFiles: rules };
+
+    return { beforeFiles };
   },
 };
 

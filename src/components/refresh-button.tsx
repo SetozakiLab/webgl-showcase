@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 
 export function RefreshButton() {
   const handleRefresh = () => {
+    // Prefer a hard reload to avoid any client cache issues when Unity bundles update
     window.location.reload();
   };
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getContentById } from "@/lib/contents";
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
@@ -14,11 +14,15 @@ export async function GET(
   const base = String(content.externalUrl).replace(/\/$/, "");
   const target = `${base}/`;
 
+  const fwdHeaders = new Headers({
+    // Hint for some hosts to serve HTML
+    Accept: "text/html,application/xhtml+xml",
+  });
+  const ref = req.headers.get("referer");
+  if (ref) fwdHeaders.set("Referer", ref);
+
   const upstream = await fetch(target, {
-    headers: {
-      // Hint for some hosts to serve HTML
-      Accept: "text/html,application/xhtml+xml",
-    },
+    headers: fwdHeaders,
     // Revalidate frequently during dev; caches can be tuned later
     cache: "no-store",
   });
