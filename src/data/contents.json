@@ -1,0 +1,26 @@
+[
+  {
+    "id": "cool-action-game",
+    "title": "クールアクションゲーム",
+    "description": "これはすごいアクションゲームです。プレイヤーは様々な敵と戦いながら、ステージを進んでいきます。",
+    "thumbnail": "/thumbnails/cool-action-game.svg",
+    "externalUrl": "https://szlab-unity-webgl-00.netlify.app/",
+    "tags": ["アクション", "2D"]
+  },
+  {
+    "id": "puzzle-master",
+    "title": "パズルマスター",
+    "description": "頭を使うパズルゲーム。論理的思考力を駆使して、複雑なパズルを解いていきましょう。",
+    "thumbnail": "/thumbnails/puzzle-master.svg",
+    "externalUrl": "https://szlab-unity-webgl-00.netlify.app/",
+    "tags": ["パズル", "思考"]
+  },
+  {
+    "id": "space-adventure",
+    "title": "スペースアドベンチャー",
+    "description": "宇宙を舞台にしたアドベンチャーゲーム。未知の惑星を探索し、宇宙の謎を解き明かそう。",
+    "thumbnail": "/thumbnails/space-adventure.svg",
+    "externalUrl": "https://szlab-unity-webgl-00.netlify.app/",
+    "tags": ["アドベンチャー", "3D", "宇宙"]
+  }
+]
