@@ -9,9 +9,9 @@ Unity WebGL コンテンツのショーケースサイト - Next.js で構築さ
 - 📱 **レスポンシブデザイン**: PC、タブレット、スマートフォンに対応
 - 🎮 **Unity WebGL サポート**: 外部ホスティングされたゲームコンテンツとの連携
 - 🔗 **URL プロキシ機能**: URL を維持しながら外部コンテンツを配信（設定時）
-- 🎨 **shadcn/ui**: 一貫した美しいUIコンポーネント
+- 🎨 **shadcn/ui**: 一貫した美しい UI コンポーネント
 - ⚡ **高速**: Next.js の SSG による最適化された配信
-- 🌐 **SEO対応**: 各コンテンツページで適切なメタデータを生成
+- 🌐 **SEO 対応**: 各コンテンツページで適切なメタデータを生成
 
 ## 実装済み機能
 
@@ -19,7 +19,7 @@ Unity WebGL コンテンツのショーケースサイト - Next.js で構築さ
 
 - [x] **コンテンツ一覧ページ**: サムネイル付きのゲーム一覧表示
 - [x] **動的ルーティング**: `/contents/[id]` でのコンテンツページ
-- [x] **URL プロキシ設定**: 外部 URL への rewrite 設定（要実際のURL）
+- [x] **URL プロキシ設定**: 外部 URL への rewrite 設定（要実際の URL）
 - [x] **フォールバック機能**: rewrite 失敗時の代替表示
 - [x] **レスポンシブデザイン**: 全デバイスサイズ対応
 - [x] **共通レイアウト**: ヘッダー、フッター統一
@@ -27,14 +27,14 @@ Unity WebGL コンテンツのショーケースサイト - Next.js で構築さ
 
 ### データ管理 ✅
 
-- [x] **JSONデータ管理**: `src/data/contents.json` での一元管理
+- [x] **JSON データ管理**: `src/data/contents.json` での一元管理
 - [x] **TypeScript 型定義**: 型安全なデータ処理
 - [x] **静的生成**: `generateStaticParams` による事前生成
 
 ### SEO・メタデータ ✅
 
 - [x] **動的メタデータ**: 各コンテンツページで適切な title, description
-- [x] **OGP対応**: SNS シェア用メタタグ
+- [x] **OGP 対応**: SNS シェア用メタタグ
 - [x] **Twitter Card**: Twitter での適切な表示
 
 ## 技術スタック
@@ -104,20 +104,17 @@ bun dev
 }
 ```
 
-## URL プロキシの有効化（本番環境）
+## URL プロキシ（本番環境）
 
-外部URLへの rewrite を有効にするには、`next.config.ts` の該当部分のコメントを解除してください：
+`next.config.ts` の rewrites が `src/data/contents.json` をもとに自動生成され、以下を実現します：
 
-```typescript
-// コメントアウトされた rewrites を有効化
-async rewrites() {
-  const contentsData = require("./src/data/contents.json");
-  return contentsData.map((content) => ({
-    source: `/contents/${content.id}/:path*`,
-    destination: `${content.externalUrl}/:path*`,
-  }));
-},
-```
+- `/contents/<id>` は `/api/proxy/<id>` へ転送され、外部 HTML に `<base href="/contents/<id>/" />` を挿入します。
+- `/contents/<id>/*` は同一パスで外部ホストへプロキシします。
+- 絶対パスで参照されがちな `/TemplateData/*` `/Build/*` `/StreamingAssets/*` は referer が該当ページのとき外部へパススルーします。
+
+追加の手作業は不要で、`src/data/contents.json` を編集するだけで反映されます。
+
+注: OGP の絶対 URL 解決のため、本番では `NEXT_PUBLIC_SITE_URL` をオリジン（例: `https://example.com`）に設定してください。
 
 ## Vercel へのデプロイ
 
