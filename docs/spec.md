@@ -46,6 +46,8 @@
 - その他:
   - サイト内のコンテンツをキーワードで検索できる検索機能。
 
+## 3. 技術仕様
+
 ### 3.1. ディレクトリ構成
 
 本プロジェクトには WebGL ビルドファイルを含めないため、`public` 直下はサムネイル等の静的アセットのみを配置する。
@@ -149,7 +151,7 @@ public/
 
 - 画像は表示サイズに応じた解像度を用意（`public/thumbnails/`）。
 - 一覧ページのサムネイル遅延読み込み（`loading="lazy"`）。
-- プレイページの iframe は初期表示領域内のみ読み込み（`loading="eager|lazy` の設計、プレースホルダー実装）。
+- プレイページの iframe は初期表示領域に応じて `loading="eager"` または `loading="lazy"` を適切に選択（プレースホルダー実装を推奨）。
 - Lighthouse 目標（モバイル）: Performance 80+, Accessibility 90+。
 
 ### 6.2. アクセシビリティ
@@ -195,3 +197,43 @@ public/
 - リライト実装について
   - アドレスバー維持の要件に合わせ、Vercel の Rewrites または Edge Middleware（`middleware.ts`）で `contents.json` の `id -> externalUrl` を参照し、`/contents/[id]` を外部ホスティングの URL に `rewrite` する。
   - 外部側の CSP/ヘッダ設定により挙動が制限される場合があるため、問題が発生する場合はサーバーリダイレクトへ切り替える運用とする。
+
+## 9. 実装手順（開発者向け指示書）
+
+1. データ準備
+
+- `src/data/contents.json` を作成し、各コンテンツの `id|title|description|thumbnail|externalUrl|tags` を登録。
+- 画像は `public/thumbnails/` に配置。ファイル名は `thumbnail` に対応。
+
+2. 型/バリデーション（推奨）
+
+- TypeScript 型 `Content` を定義し、Zod 等でスキーマ検証を追加（ビルド時チェック）。
+
+3. 一覧ページ（`src/app/page.tsx`）
+
+- `contents.json` を読み込みカード一覧を表示。`next/image` を用い、`loading="lazy"`、`alt` を必須。
+- カードは `/contents/[id]` へのリンク。
+
+4. 遷移ページ（`src/app/contents/[id]/page.tsx`）
+
+- `generateStaticParams` で全 `id` を生成。
+- 原則はリライト運用だが、フォールバックとして `redirect(externalUrl)` を実装。失敗時に外部リンクと「一覧へ戻る」を提示。
+- 未知の `id` は 404。
+
+5. リライト（URL 維持）構成（Vercel）
+
+- 推奨: `next.config.ts` の `rewrites()` で `contents.json` を読み込み、`/contents/<id>` → `<externalUrl>` のルールを列挙生成。
+- 代替: `middleware.ts` で `NextResponse.rewrite(externalUrl)` を使用（必要に応じて）。
+- 注意: 外部の CSP/COOP/COEP ヘッダーにより挙動が制限され得る。問題があればリダイレクトに切替。
+
+6. SEO/メタデータ
+
+- App Router の `generateMetadata` で各 `/contents/[id]` の `<title>`/`description`/OGP を `contents.json` から生成。
+
+7. 品質チェック
+
+- Lint/TypeCheck/Build（ローカル） → Vercel Preview → 受け入れ基準(§7)を手動確認。
+
+8. 運用
+
+- コンテンツ追加は `contents.json` と `public/thumbnails/` への追加で完結。リライト採用時はデプロイで規則が反映される。
