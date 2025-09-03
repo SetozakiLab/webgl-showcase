@@ -8,7 +8,7 @@
 - 方針: このリポジトリには WebGL ビルドファイルを含めない。各コンテンツは外部ホスティング先に配置し、本サイトは以下の方針で提供する。
   - 第一候補: リライト（プロキシ）により、ユーザーのアドレスバーは `mydomain.com/contents/[id]` を維持したまま外部ホスティングのコンテンツを配信する。
   - 代替手段: 外部 URL へのリダイレクト（サーバー/クライアント）または外部リンクの提示。
-- 主要技術: Next.js (App Router), TypeScript（SSG/ISR/SSR を状況に応じて選択）
+- 主要技術: Next.js (App Router), TypeScript, Tailwind CSS + shadcn/ui（SSG/ISR/SSR を状況に応じて選択）
 - デプロイ対象: Vercel（Preview/Production）
 
 ## 2. 機能要件
@@ -34,6 +34,7 @@
 
 - PC、タブレット、スマートフォンなど、異なるデバイスサイズで見やすいレスポンシブデザインに対応する。
 - ヘッダーやフッターなど、全ページで共通の基本的なレイアウトを持つ。
+- 基本の UI コンポーネントは shadcn/ui を優先的に使用し、デザインと操作性の一貫性を保つ。
 
 ### 2.2. 拡張要件 (Nice-to-have)
 
@@ -102,6 +103,13 @@ public/
 - 遷移ページはリライト（推奨）により URL を維持して配信。リライトが適用できない場合は `redirect()` によるサーバーリダイレクト、必要に応じて ISR。
 - 画像最適化は `next/image` を利用可能。
 
+### 3.4. UI コンポーネント方針
+
+- スタイル基盤は Tailwind CSS、UI は shadcn/ui を優先採用する（必要時のみカスタム CSS/Modules）。
+- 使用想定コンポーネント例: Button, Card, Badge, Input, NavigationMenu, DropdownMenu, Dialog/Sheet, Pagination, Skeleton, AspectRatio, Separator, Alert。
+- コンポーネントの variant/size トークンを活用し、サイト全体のトーン&マナーを統一する（色/余白/角丸など）。
+- アクセシビリティ: shadcn/ui のアクセシブルなプリミティブを活用しつつ、画像の `alt`、フォーカスリング、キーボード操作を保証する。
+
 ## 4. 開発ロードマップ
 
 - Step 1: 最小構成の実装
@@ -109,7 +117,7 @@ public/
   - `src/data/contents.json` を作成し、メタデータを定義する。
   - 一覧ページ（`/page.tsx`）で JSON を読み込み、コンテンツリストとプレイページへのリンクを動的に生成する。
 - Step 3: スタイリング
-  - Tailwind CSS や CSS Modules などを利用して、サイト全体の UI/UX を設計・実装する。レスポンシブ対応もこの段階で行う。
+  - Tailwind CSS + shadcn/ui を標準採用し、サイト全体の UI/UX を設計・実装する（必要に応じて CSS Modules を補助的に使用）。レスポンシブ対応もこの段階で行う。
 - Step 4: 拡張機能の実装
   - 必須要件が完了次第、2.2 に記載されている拡張機能（フィルタリング、検索など）の設計と実装に着手する。
 
@@ -213,12 +221,14 @@ public/
 
 - `contents.json` を読み込みカード一覧を表示。`next/image` を用い、`loading="lazy"`、`alt` を必須。
 - カードは `/contents/[id]` へのリンク。
+- UI は shadcn/ui の `Card`, `CardHeader`, `CardContent`, `CardTitle`, `Badge`, `Button` を基本に構成。
 
 4. 遷移ページ（`src/app/contents/[id]/page.tsx`）
 
 - `generateStaticParams` で全 `id` を生成。
 - 原則はリライト運用だが、フォールバックとして `redirect(externalUrl)` を実装。失敗時に外部リンクと「一覧へ戻る」を提示。
 - 未知の `id` は 404。
+- UI は shadcn/ui の `Card`/`Alert`/`Button` を使用し、「外部で開く」「一覧へ戻る」を明示。
 
 5. リライト（URL 維持）構成（Vercel）
 
@@ -235,5 +245,7 @@ public/
 - Lint/TypeCheck/Build（ローカル） → Vercel Preview → 受け入れ基準(§7)を手動確認。
 
 8. 運用
+
+- 追加: shadcn/ui のコンポーネントは `npx shadcn@latest add <component>` で導入し、共通スタイルは設定済みの `tailwind.config`/`globals.css` を利用する。
 
 - コンテンツ追加は `contents.json` と `public/thumbnails/` への追加で完結。リライト採用時はデプロイで規則が反映される。
