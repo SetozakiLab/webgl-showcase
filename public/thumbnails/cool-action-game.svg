@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#ff6b6b"/>
+  <rect x="50" y="50" width="300" height="200" fill="#ffffff" rx="10"/>
+  <text x="200" y="120" text-anchor="middle" font-family="Arial" font-size="16" fill="#333">クールアクション</text>
+  <text x="200" y="140" text-anchor="middle" font-family="Arial" font-size="16" fill="#333">ゲーム</text>
+  <circle cx="100" cy="200" r="15" fill="#ff6b6b"/>
+  <rect x="280" y="185" width="30" height="30" fill="#ff6b6b"/>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#2c3e50"/>
+  <rect x="50" y="50" width="300" height="200" fill="#34495e" rx="10"/>
+  <text x="200" y="110" text-anchor="middle" font-family="Arial" font-size="16" fill="#ecf0f1">スペース</text>
+  <text x="200" y="130" text-anchor="middle" font-family="Arial" font-size="16" fill="#ecf0f1">アドベンチャー</text>
+  <circle cx="120" cy="80" r="3" fill="#f39c12"/>
+  <circle cx="160" cy="90" r="2" fill="#e74c3c"/>
+  <circle cx="240" cy="75" r="2" fill="#9b59b6"/>
+  <circle cx="280" cy="85" r="1" fill="#3498db"/>
+  <polygon points="200,180 190,200 210,200" fill="#f39c12"/>
+</svg>
