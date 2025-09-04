@@ -117,8 +117,6 @@ export default async function ContentPage({ params }: ContentPageProps) {
 
               <div className="text-center text-sm text-muted-foreground">
                 <p>
-                  このページは自動的に外部ホスティングからコンテンツを読み込みます。
-                  <br />
                   読み込みに時間がかかる場合や、問題が発生した場合は「新しいタブで開く」をご利用ください。
                 </p>
               </div>

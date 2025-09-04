@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Unity WebGL Showcase",
-  description: "Unity WebGL コンテンツのショーケースサイト",
+  title: "コンテンツポータル - Setozaki Lab",
+  description:
+    "長崎大学の瀬戸崎研究室が運営する、Unity等で制作されたコンテンツの展示ポータルサイト",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
   ),

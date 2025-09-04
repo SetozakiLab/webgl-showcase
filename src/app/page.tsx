@@ -12,10 +12,10 @@ export default function Home() {
       <header className="bg-card border-b">
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-4xl font-bold text-center text-foreground">
-            Unity WebGL ショーケース
+            コンテンツ展示ポータル
           </h1>
           <p className="text-center text-muted-foreground mt-2">
-            研究室で作成されたWebGLゲームコンテンツ一覧
+            長崎大学の瀬戸崎研究室の活動の中で制作されたコンテンツを紹介するポータルサイトです。
           </p>
         </div>
       </header>
@@ -62,7 +62,7 @@ export default function Home() {
 
       <footer className="bg-card border-t mt-16">
         <div className="container mx-auto px-4 py-8 text-center text-muted-foreground">
-          <p>© 2024 Unity WebGL Showcase. All rights reserved.</p>
+          <p>© 2025 Setozaki Lab, Nagasaki University. All rights reserved.</p>
         </div>
       </footer>
     </div>
