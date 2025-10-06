@@ -1,11 +1,11 @@
 [
   {
-    "id": "cool-action-game",
-    "title": "クールアクションゲーム",
-    "description": "これはすごいアクションゲームです。プレイヤーは様々な敵と戦いながら、ステージを進んでいきます。",
+    "id": "app-develop-lecture-2025-08",
+    "title": "City Builder",
+    "description": "高校生アプリ開発講座2025 優秀賞作品",
     "thumbnail": "/thumbnails/default.png",
-    "externalUrl": "https://szlab-unity-webgl-00.netlify.app/",
-    "tags": ["アクション", "2D"]
+    "externalUrl": "https://szlab-unity-webgl-01.netlify.app/",
+    "tags": ["高校生アプリ開発講座", "SDGs", "2D"]
   },
   {
     "id": "puzzle-master",
@@ -14,13 +14,5 @@
     "thumbnail": "/thumbnails/default.png",
     "externalUrl": "https://szlab-unity-webgl-00.netlify.app/",
     "tags": ["パズル", "思考"]
-  },
-  {
-    "id": "space-adventure",
-    "title": "スペースアドベンチャー",
-    "description": "宇宙を舞台にしたアドベンチャーゲーム。未知の惑星を探索し、宇宙の謎を解き明かそう。",
-    "thumbnail": "/thumbnails/default.png",
-    "externalUrl": "https://szlab-unity-webgl-00.netlify.app/",
-    "tags": ["アドベンチャー", "3D", "宇宙"]
   }
 ]
